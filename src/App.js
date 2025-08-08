@@ -2,41 +2,39 @@
 import { Component } from 'react';
 import React from 'react';
 import Comments from './Comments';
+import NewComments from './NewComments';
+import { database } from './firebase';
 
 class App extends Component {
   state = {
-    newComment: '',
-    comments: [
-      'This is a great post!',
-      'I learned a lot from this article.',
-      'Thanks for sharing your insights.',
-      'I disagree with some points, but overall a good read.',
-      'Can you elaborate on the second point?',
-    ]
+    comments: {},
+    isLoading: false
   }
 
-  sendComment = () => {
-    this.setState({
-      comments: [...this.state.comments, this.state.newComment],
-      newComment: ''
-    })
+  sendComment = comment => {
+    const id = database.ref().child('comments').push().key;
+    const comments = {} 
+    comments["comments/" + id] = { comment };
+    database.ref().update(comments);
   }
 
-  handleChange = event => {
-    this.setState({
-      newComment: event.target.value
-    })
-  }
+  componentDidMount() {
+    this.setState({ isLoading: true });
+    this.comments = database.ref('comments');
+    this.comments.on('value', snapshot => {
+      this.setState({
+        comments: snapshot.val(),
+        isLoading: false
+      });
+  })
+}
+
   render() {
     return (
       <div className="App">
-        <textarea
-          value={this.state.newComment}
-          onChange={this.handleChange}
-          type="text" placeholder="Type your comment here..." />
-        <button onClick={this.sendComment}>Submit</button>
-
+        <NewComments sendComment={this.sendComment}/>
         <Comments comments={this.state.comments} />
+        {this.state.isLoading && <p>Loading comments...</p>}
       </div>
     );
   }
