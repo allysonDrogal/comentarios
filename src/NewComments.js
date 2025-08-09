@@ -13,7 +13,7 @@ class NewComments extends Component {
 
   sendComment = () => {
     this.props.sendComment(this.state.newComment);
-    this.setState({ newComment: '' }); // Clear the input after sending
+    this.setState({ newComment: '' });
   }
 
   render() {
